@@ -1,7 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { LandingPage } from './components/Landing';
-import { Room } from './components/Room';
-import './App.css';
 
 function App() {
 
