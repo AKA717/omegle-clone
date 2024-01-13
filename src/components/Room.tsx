@@ -1,24 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { Socket, io } from "socket.io-client";
 
-export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string , localAudioTrack: MediaStreamTrack | null, localVideoTrack: MediaStreamTrack | null}) => {
+export const Room = ({ name, localAudioTrack, localVideoTrack }: { name: string, localAudioTrack: MediaStreamTrack | null, localVideoTrack: MediaStreamTrack | null }) => {
 
 
-    const [ socket, setSocket ] = useState<null | Socket>(null);
-    const [ lobby , setLobby ] = useState(true);
-    const [ sendingPc , setSendingPc ] = useState<null | RTCPeerConnection>(null);
-    const [ receivingPc , setReceivingPc ] = useState<null | RTCPeerConnection>(null);
-    const [ remoteVideoTrack , setRemoteVideoTrack ] = useState<MediaStreamTrack | null>(null);
-    const [ remoteAudioTrack , setRemoteAudioTrack ] = useState<MediaStreamTrack | null>(null);
-    const [ remoteMediaStream , setRemoteMediaStream ] = useState<MediaStream | null>(null);
-    const remoteVideoRef= useRef<HTMLVideoElement>(null);
+    const [socket, setSocket] = useState<null | Socket>(null);
+    const [lobby, setLobby] = useState(true);
+    const [sendingPc, setSendingPc] = useState<null | RTCPeerConnection>(null);
+    const [receivingPc, setReceivingPc] = useState<null | RTCPeerConnection>(null);
+    const [remoteVideoTrack, setRemoteVideoTrack] = useState<MediaStreamTrack | null>(null);
+    const [remoteAudioTrack, setRemoteAudioTrack] = useState<MediaStreamTrack | null>(null);
+    const [remoteMediaStream, setRemoteMediaStream] = useState<MediaStream | null>(null);
+    const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const localVideoRef = useRef<HTMLVideoElement>(null)
 
     const URL = "http://localhost:3000";
 
     useEffect(() => {
         const socket = io(URL);
-        socket.on('send-offer', async ({roomId}) => {
+        socket.on('send-offer', async ({ roomId }) => {
             console.log("sending offer");
             setLobby(false);
             const pc = new RTCPeerConnection();
@@ -38,11 +38,11 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
             pc.onicecandidate = async (e) => {
                 console.log("receiving ice candidate locally");
                 if (e.candidate) {
-                   socket.emit("add-ice-candidate", {
-                    candidate: e.candidate,
-                    type: "sender",
-                    roomId
-                   })
+                    socket.emit("add-ice-candidate", {
+                        candidate: e.candidate,
+                        type: "sender",
+                        roomId
+                    })
                 }
             }
 
@@ -58,7 +58,7 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
             }
         });
 
-        socket.on("offer", async ({roomId, sdp: remoteSdp}) => {
+        socket.on("offer", async ({ roomId, sdp: remoteSdp }) => {
             console.log("received offer");
             setLobby(false);
             const pc = new RTCPeerConnection();
@@ -84,11 +84,11 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
                     return;
                 }
                 if (e.candidate) {
-                   socket.emit("add-ice-candidate", {
-                    candidate: e.candidate,
-                    type: "receiver",
-                    roomId
-                   })
+                    socket.emit("add-ice-candidate", {
+                        candidate: e.candidate,
+                        type: "receiver",
+                        roomId
+                    })
                 }
             }
 
@@ -126,7 +126,7 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
             }, 5000)
         });
 
-        socket.on("answer", ({roomId, sdp: remoteSdp}) => {
+        socket.on("answer", ({ roomId, sdp: remoteSdp }) => {
             setLobby(false);
             setSendingPc(pc => {
                 pc?.setRemoteDescription(remoteSdp)
@@ -138,8 +138,8 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
             setLobby(true);
         })
 
-        socket.on("add-ice-candidate", ({candidate, type}) => {
-            console.log({candidate, type})
+        socket.on("add-ice-candidate", ({ candidate, type }) => {
+            console.log({ candidate, type })
             if (type == "sender") {
                 setReceivingPc(pc => {
                     if (!pc) {
@@ -174,10 +174,45 @@ export const Room = ({ name, localAudioTrack, localVideoTrack} : {name : string 
         }
     }, [localVideoRef])
 
-    return <div>
-        hi {name}
-        <video autoPlay width={400} height={400} ref={localVideoRef}></video>
-        { lobby ? "waiting to connect to others" : null}
-        <video autoPlay width={400} height={400} ref={remoteVideoRef}></video>
+    return <div className="w-full font-mono text-white">
+        <div className="grid grid-cols-2">
+            <div
+                className="h-screen flex justify-center"
+            >
+                <div className="grid place-items-center">
+                    <video className="rounded-lg" autoPlay width={500} height={500} ref={localVideoRef} />
+                    {lobby ? "waiting to connect to others" : null}
+                    <video className="rounded-lg" autoPlay width={500} height={500} ref={remoteVideoRef} />
+                </div>
+            </div>
+            <div
+                className="grid h-screen"
+            >
+                <div className="h-screen p-5">
+                    <div className="border border-gray-200 rounded-lg shadow"
+                        style={{ "height": "85vh" }}
+                    >
+                        <div className="p-3 grid gap-3">
+                            <span className="text-4xl font-semibold text-green-500 mb-10">Hi {name}</span>
+                            <span>chat</span>
+                            <span>chat</span>
+                            <span>chat</span>
+                            <span>chat</span>
+                            <span>chat</span>
+                        </div>
+                    </div >
+                    <div className="flex justify-center mt-6">
+                        <div className="flex gap-5">
+                            <form style={{"width" : "100%"}}>
+                                <div className="relative">
+                                    <input style={{"width" : "100%"}} type="search" id="default-search" className="block p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Send Message...." required />
+                                        <button type="submit" className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Send</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 }
